@@ -1,27 +1,6 @@
 package com.company;
-
-
+import java.util.InputMismatchException;
 import java.util.Scanner;
-
-class JThread extends Thread {
-
-    JThread(String name){
-        super(name);
-    }
-
-    public void run(){
-
-        System.out.printf("%s started... \n", Thread.currentThread().getName());
-        try{
-            Thread.sleep(500);
-        }
-        catch(InterruptedException e){
-            System.out.println("Thread has been interrupted");
-        }
-        System.out.printf("%s fiished... \n", Thread.currentThread().getName());
-    }
-}
-
 
 class results {
     private boolean res_f;
@@ -65,10 +44,10 @@ abstract class my_Thread extends Thread {
         x = arg;
     }
 
-    protected abstract void calculate();
+    protected abstract void calculate() throws InterruptedException;
 
     public void run(){
-        System.out.printf("%s started... \n", Thread.currentThread().getName());
+        System.out.println(getName() + " started...");
         while(!isInterrupted()){
             try{
                 calculate();
@@ -80,47 +59,28 @@ abstract class my_Thread extends Thread {
                 interrupt();
             }
         }
-        System.out.printf("%s finished... \n", Thread.currentThread().getName());
+        System.out.println(getName() + " finished...");
     }
-
-
-
-    /*
-    private void calculate(){
-        //res.set_f(x > 10);
-    }*/
 }
 
 class Thread_f extends my_Thread {
-
     public Thread_f(String s, results res) {
         super(s, res);
     }
 
-    protected void calculate(){
+    protected void calculate() throws InterruptedException {
         res.set_f(x > 10);
+        sleep(15000);
     }
 }
 
-class Thread_g extends Thread {
-
-    int x;
-    results res = null;
-
-    Thread_g(String s, results r){
-        super(s);
-        res = r;
+class Thread_g extends my_Thread {
+    public Thread_g(String s, results res) {
+        super(s, res);
     }
 
-    public void set_arg(int arg){
-        x = arg;
-    }
-
-    public void run(){
-        System.out.printf("%s started... \n", Thread.currentThread().getName());
-
+    protected void calculate() throws InterruptedException {
         res.set_g(x < 15);
-        System.out.printf("%s finished... \n", Thread.currentThread().getName());
     }
 }
 
@@ -136,22 +96,18 @@ public class Main {
     }
 
     public static void main(String[] args) {
-	// write your code here
-
-        System.out.println("Main thread started...");/*
-        JThread t1= new JThread("JThread 1");
-        JThread t2= new JThread("JThread 2");
-        t1.start();
-        t2.start();*/
+        System.out.println("Main thread started...");
 
         Scanner in = new Scanner(System.in);
         System.out.println("Please type (int) x: ");
         int x = 0;
+
         try{
             x = in.nextInt();
         }
-        catch (Exception e){
-            System.out.println(e.getCause());
+        catch (InputMismatchException e){
+            System.out.println("Error input");
+            return;
         }
 
         results res = new results();
@@ -168,18 +124,23 @@ public class Main {
         int timer = 0;
         int wakeup = 10000;
         int step = 150;
+        boolean wrong_res = false;
         try{
             while (do_next){
                 if(!f1.isAlive() && !g1.isAlive())
                     do_next = false;
                 if(timer > wakeup){
                     if(f1.isAlive()){
-                        if(!ask_cont(in,"f(x)"));
+                        if(!ask_cont(in,"f(x)")) {
                             f1.interrupt();
+                            wrong_res = true;
+                        }
                     }
                     if(g1.isAlive()){
-                        if(!ask_cont(in,"g(x)"));
-                        g1.interrupt();
+                        if(!ask_cont(in,"g(x)")) {
+                            g1.interrupt();
+                            wrong_res = true;
+                        }
                     }
                     timer = 0;
                 }
@@ -187,19 +148,18 @@ public class Main {
                 timer += step;
             }
 
-            System.out.println("f(x) = " + res.get_f());
-            System.out.println("g(x) = " + res.get_g());
+            if(!wrong_res) {
 
-            boolean result = res.get_f() && res.get_g();
-            System.out.println("Result = " + result);
+                System.out.println("f(x) = " + res.get_f());
+                System.out.println("g(x) = " + res.get_g());
 
+                boolean result = res.get_f() && res.get_g();
+                System.out.println("Result = " + result);
+            } else {
+                System.out.println("One of processes has been interrupted");
+            }
         }
         catch(InterruptedException e){
-/*
-            System.out.printf("%s has been interrupted", t1.getName());
-            System.out.printf("%s has been interrupted", t2.getName());
-
- */
             System.out.println(e.getCause());
         }
         System.out.println("Main thread finished...");
