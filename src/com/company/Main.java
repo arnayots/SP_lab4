@@ -2,6 +2,8 @@ package com.company;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
+import static java.lang.Math.cos;
+
 class results {
     private boolean res_f;
     private boolean res_g;
@@ -69,7 +71,7 @@ class Thread_f extends my_Thread {
     }
 
     protected void calculate() throws InterruptedException {
-        res.set_f(x > 10);
+        res.set_f(cos(x) > 0.5);
         sleep(15000);
     }
 }
@@ -122,7 +124,7 @@ public class Main {
 
         boolean do_next = true;
         int timer = 0;
-        int wakeup = 10000;
+        int wakeup = 3000;
         int step = 150;
         boolean wrong_res = false;
         try{
